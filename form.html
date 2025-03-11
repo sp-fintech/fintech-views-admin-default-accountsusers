@@ -1,0 +1,123 @@
+{% if user['id'] is defined %}
+    {% set userId = user['id'] %}
+    {% set userFirstName = user['first_name'] %}
+    {% set userLastName = user['last_name'] %}
+{% else %}
+    {% set userId = '' %}
+    {% set userFirstName = '' %}
+    {% set userLastName = '' %}
+{% endif %}
+<div class="row">
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                      : component,
+                'componentName'                  : componentName,
+                'componentId'                    : componentId,
+                'sectionId'                      : sectionId,
+                'fieldId'                        : 'id',
+                'fieldLabel'                     : 'ID',
+                'fieldType'                      : 'input',
+                'fieldHelp'                      : true,
+                'fieldHelpTooltipContent'        : 'ID',
+                'fieldRequired'                  : true,
+                'fieldBazScan'                   : true,
+                'fieldBazPostOnCreate'           : false,
+                'fieldBazPostOnUpdate'           : true,
+                'fieldHidden'                    : true,
+                'fieldDisabled'                  : true,
+                'fieldValue'                     : userId
+            ]
+        )}}
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                      : component,
+                'componentName'                  : componentName,
+                'componentId'                    : componentId,
+                'sectionId'                      : sectionId,
+                'fieldId'                        : 'first_name',
+                'fieldLabel'                     : 'First Name',
+                'fieldType'                      : 'input',
+                'fieldHelp'                      : true,
+                'fieldHelpTooltipContent'        : 'First Name',
+                'fieldRequired'                  : true,
+                'fieldBazScan'                   : true,
+                'fieldBazJstreeSearch'           : true,
+                'fieldBazPostOnCreate'           : true,
+                'fieldBazPostOnUpdate'           : true,
+                'fieldDataInputMinLength'        : 1,
+                'fieldDataInputMaxLength'        : 50,
+                'fieldValue'                     : userFirstName
+            ]
+        )}}
+    </div>
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                      : component,
+                'componentName'                  : componentName,
+                'componentId'                    : componentId,
+                'sectionId'                      : sectionId,
+                'fieldId'                        : 'last_name',
+                'fieldLabel'                     : 'Last Name',
+                'fieldType'                      : 'input',
+                'fieldHelp'                      : true,
+                'fieldHelpTooltipContent'        : 'Last Name',
+                'fieldRequired'                  : true,
+                'fieldBazScan'                   : true,
+                'fieldBazJstreeSearch'           : true,
+                'fieldBazPostOnCreate'           : true,
+                'fieldBazPostOnUpdate'           : true,
+                'fieldDataInputMinLength'        : 1,
+                'fieldDataInputMaxLength'        : 50,
+                'fieldValue'                     : userLastName
+            ]
+        )}}
+    </div>
+</div>
+<script>
+var dataCollectionComponent, dataCollectionSection, dataCollectionSectionForm;
+
+if (!window['dataCollection']['{{componentId}}']) {
+    dataCollectionComponent =
+        window['dataCollection']['{{componentId}}'] = { };
+} else {
+    dataCollectionComponent =
+        window['dataCollection']['{{componentId}}'];
+}
+if (!dataCollectionComponent['{{componentId}}-{{sectionId}}']) {
+    dataCollectionSection =
+        dataCollectionComponent['{{componentId}}-{{sectionId}}'] = { };
+} else {
+    dataCollectionSection =
+        dataCollectionComponent['{{componentId}}-{{sectionId}}'];
+}
+if (!dataCollectionSection['{{componentId}}-{{sectionId}}-form']) {
+    dataCollectionSectionForm =
+        dataCollectionSection['{{componentId}}-{{sectionId}}-form'] = { };
+} else {
+    dataCollectionSectionForm =
+        dataCollectionSection['{{componentId}}-{{sectionId}}-form'];
+}
+
+dataCollectionSection =
+    $.extend(dataCollectionSection, {
+        '{{componentId}}-{{sectionId}}-id'                          : { },
+        '{{componentId}}-{{sectionId}}-first_name'                  : { },
+        '{{componentId}}-{{sectionId}}-last_name'                   : { },
+        '{{componentId}}-{{sectionId}}-form' : {
+            rules: {
+                '{{componentId}}-{{sectionId}}-first_name'      : 'required',
+                '{{componentId}}-{{sectionId}}-last_name'       : 'required'
+            },
+            messages: {
+                '{{componentId}}-{{sectionId}}-first_name'      : 'Please enter first name',
+                '{{componentId}}-{{sectionId}}-last_name'       : 'Please enter last name'
+            }
+        }
+});
+</script>

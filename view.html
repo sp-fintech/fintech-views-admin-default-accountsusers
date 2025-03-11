@@ -1,0 +1,34 @@
+{% if user['id'] is defined %}
+    {% set userId = user['id'] %}
+    {% set title = 'User (' ~ user['name'] ~ ')' %}
+{% else %}
+    {% set userId = '' %}
+    {% set title = 'New User' %}
+{% endif %}
+{{adminltetags.useTag('content',
+    [
+        'component'                     : component,
+        'componentName'                 : componentName,
+        'componentId'                   : componentId,
+        'parentComponentId'             : parent,
+        'sectionId'                     : 'main',
+        'contentType'                   : 'sectionWithForm',
+        'cardHeader'                    : true,
+        'cardFooter'                    : true,
+        'cardType'                      : 'primary',
+        'cardIcon'                      : 'circle-dot',
+        'cardTitle'                     : title,
+        'cardAdditionalClass'           : 'rounded-0',
+        'cardBodyInclude'               : 'users/form',
+        'formButtons'                   :
+        [
+            'updateButtonId'                : userId,
+            'addActionUrl'                  : 'accounts/users/add',
+            'addSuccessRedirectUrl'         : 'accounts/users',
+            'updateActionUrl'               : 'accounts/users/update',
+            'updateSuccessRedirectUrl'      : 'accounts/users',
+            'cancelActionUrl'               : 'accounts/users',
+            'closeActionUrl'                : 'accounts/users'
+        ]
+    ]
+)}}
