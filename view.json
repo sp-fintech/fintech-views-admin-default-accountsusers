@@ -1,7 +1,7 @@
 {
 	"name" : "AccountsUsers",
-	"display_name" : "SP Framework Fintech Accounts Users View",
-	"description" : "<p>SP Framework Fintech Auth View<br></p>",
+	"display_name" : "Fintech Accounts Users View",
+	"description" : "<p>Fintech Auth View<br></p>",
 	"module_type" : "views",
 	"app_type" : "fintech",
 	"category" : "admin",
