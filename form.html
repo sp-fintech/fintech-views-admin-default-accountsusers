@@ -2,10 +2,12 @@
     {% set userId = user['id'] %}
     {% set userFirstName = user['first_name'] %}
     {% set userLastName = user['last_name'] %}
+    {% set userEquityBalance = user['equity_balance'] %}
 {% else %}
     {% set userId = '' %}
     {% set userFirstName = '' %}
     {% set userLastName = '' %}
+    {% set userEquityBalance = '0.00' %}
 {% endif %}
 <div class="row">
     <div class="col">
@@ -78,8 +80,205 @@
             ]
         )}}
     </div>
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                      : component,
+                'componentName'                  : componentName,
+                'componentId'                    : componentId,
+                'sectionId'                      : sectionId,
+                'fieldId'                        : 'equity_balance',
+                'fieldLabel'                     : 'Equity Balance',
+                'fieldType'                      : 'input',
+                'fieldHelp'                      : true,
+                'fieldHelpTooltipContent'        : 'Equity Balance',
+                'fieldGroupPreAddonText'         : currencySymbol,
+                'fieldGroupPostAddonButtons'     :
+                    [
+                        'recalculate'   : [
+                            'title'                   : 'Recalculate',
+                            'icon'                    : 'cog fa-spin',
+                            'iconHidden'              : true,
+                            'noMargin'                : true,
+                            'buttonAdditionalClass'   : 'rounded-0 text-white',
+                            'position'                : 'right'
+                        ]
+                    ],
+                'fieldRequired'                  : false,
+                'fieldDisabled'                  : true,
+                'fieldBazScan'                   : true,
+                'fieldBazJstreeSearch'           : true,
+                'fieldBazPostOnCreate'           : false,
+                'fieldBazPostOnUpdate'           : false,
+                'fieldDataInputMinLength'        : 1,
+                'fieldDataInputMaxLength'        : 50,
+                'fieldValue'                     : userEquityBalance
+            ]
+        )}}
+    </div>
 </div>
+{% set balances = [] %}
+{% if user['id'] is defined %}
+    <div class="row">
+        <div class="col">
+            {{adminltetags.useTag('buttons',
+                [
+                    'component'                      : component,
+                    'componentName'                  : componentName,
+                    'componentId'                    : componentId,
+                    'sectionId'                      : sectionId,
+                    'buttonType'                    : 'button',
+                    'buttons'                       :
+                        [
+                            'users-link'    : [
+                                'title'                   : 'link',
+                                'size'                    : 'xs',
+                                'disabled'                : true,
+                                'hidden'                  : true,
+                                'url'                     : links.url('accounts/users/q/id/' ~ user['id'])
+                            ]
+                        ]
+                ]
+            )}}
+        </div>
+        <div class="col">
+            {{adminltetags.useTag('buttons',
+                [
+                'component'                     : component,
+                'componentName'                 : componentName,
+                'componentId'                   : componentId,
+                'parentComponentId'             : parent,
+                'sectionId'                     : sectionId,
+                'buttonType'                    : 'button',
+                'buttons'                       :
+                        [
+                            'equity' : [
+                                'title'                   : 'Add Equity',
+                                'size'                    : 'xs',
+                                'type'                    : 'primary',
+                                'position'                : 'right',
+                                'icon'                    : 'plus'
+                            ]
+                        ]
+                ]
+            )}}
+        </div>
+    </div>
+    <hr>
+    {% set balancesHtml = '' %}
+    {% if user['balances'] is defined and user['balances']|length > 0 %}
+        {% for balance in user['balances'] %}
+            {% set inUse = 'Yes' %}
+            {% if balance['in_use'] == false %}
+                {% set inUse = 'No' %}
+            {% endif %}
+            {% set balancesHtml = balancesHtml ~ '<tr>' ~
+            '           <td>' ~ balance['id'] ~ '</td>' ~
+            '           <td>' ~ balance['date'] ~ '</td>' ~
+            '           <td>' ~ strtoupper(balance['type']) ~ '</td>' ~
+            '           <td>' ~ balance['amount'] ~ '</td>' ~
+            '           <td>' ~ inUse ~ '</td>' ~
+            '           <td>' %}
+                {% set dropdowns = [] %}
+                {% set dropdowns['edit-' ~ balance['id']] = [
+                        'title'             : 'edit',
+                        'size'              : 'xs',
+                        'type'              : 'warning',
+                        'additionalClass'   : 'editBalance'
+                    ]
+                %}
+                {% set dropdowns['remove-' ~ balance['id']] = [
+                        'title'             : 'remove',
+                        'size'              : 'xs',
+                        'type'              : 'warning',
+                        'additionalClass'   : 'removeBalance'
+                    ]
+                %}
+            {% set balancesHtml = balancesHtml ~
+                adminltetags.useTag('buttons',
+                    [
+                        'component'                     : component,
+                        'componentName'                 : componentName,
+                        'componentId'                   : componentId,
+                        'parentComponentId'             : parent,
+                        'sectionId'                     : sectionId,
+                        'buttonType'                    : 'DropdownSplitButtons',
+                        'dropdownSplitButtonsSplit'     : true,
+                        'dropdownAlign'                 : 'right',
+                        'splitMainButtonAdditionalClass': 'viewBalance',
+                        'splitMainButtonId'             : 'view-' ~ balance['id'],
+                        'splitMainButtonTitle'          : 'View',
+                        'buttonFlat'                    : true,
+                        'splitMainButtonType'           : 'info',
+                        'dropdowns'                     : dropdowns
+                    ]
+                )
+            ~ '</td>' ~
+            '       </tr>' %}
+            {% set balances[balance['id']] = balance %}
+        {% endfor %}
+    {% endif %}
+    <label>ACCOUNT BALANCE TRANSACTIONS</label>
+    <div class="row" id="balances-table">
+        <div class="col">
+            <table id="{{componentId}}-{{sectionId}}-balances-table" class="table table-sm table-hover responsive nowrap mb-0" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="text-uppercase">ID</th>
+                        <th class="text-uppercase">DATE</th>
+                        <th class="text-uppercase">TYPE</th>
+                        <th class="text-uppercase">AMOUNT ({{ currencySymbol }})</th>
+                        <th class="text-uppercase">IN USE</th>
+                        <th class="text-uppercase">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{balancesHtml}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        {{adminltetags.useTag('modal',
+            [
+                'component'                 : component,
+                'componentName'             : componentName,
+                'componentId'               : componentId,
+                'sectionId'                 : sectionId,
+                'modalId'                   : 'equity-modal',
+                'modalBodyInclude'          : 'users/equity',
+                'modalSize'                 : 'xl',
+                'modalHeader'               : true,
+                'modalFooter'               : true,
+                'modalHeaderCloseButton'    : true,
+                'modalEscClose'             : true,
+                'modalTitle'                : currencySymbol ~ ' ADD EQUITY',
+                'modalFooterButtons'        :
+                    [
+                    'component'                     : component,
+                    'componentName'                 : componentName,
+                    'componentId'                   : componentId,
+                    'parentComponentId'             : parent,
+                    'sectionId'                     : sectionId,
+                    'buttonType'                    : 'button',
+                    'buttons'                       :
+                            [
+                                'modal-button-save' : [
+                                    'title'                   : 'save',
+                                    'type'                    : 'primary',
+                                    'position'                : 'right',
+                                    'icon'                    : 'cog fa-spin',
+                                    'iconHidden'              : true
+                                ]
+                            ]
+                    ]
+            ]
+        )}}
+    </div>
+{% endif %}
+{% set balances = json_encode(balances, 16) %}
 <script>
+/*global paginatedPNotify BazProgress BazContentFields BazHelpers BazContentLoader Pace BazCore dataCollection Swal */
 var dataCollectionComponent, dataCollectionSection, dataCollectionSectionForm;
 
 if (!window['dataCollection']['{{componentId}}']) {
@@ -109,6 +308,16 @@ dataCollectionSection =
         '{{componentId}}-{{sectionId}}-id'                          : { },
         '{{componentId}}-{{sectionId}}-first_name'                  : { },
         '{{componentId}}-{{sectionId}}-last_name'                   : { },
+        '{{componentId}}-{{sectionId}}-equity_balance'              : { },
+        '{{componentId}}-{{sectionId}}-balance_id'                  : { },
+        '{{componentId}}-{{sectionId}}-date'                        : {
+            dateFormat          : "Y-m-d",
+            altFormat           : "Y-m-d",
+            static              : true
+        },
+        '{{componentId}}-{{sectionId}}-amount'                      : { },
+        '{{componentId}}-{{sectionId}}-type'                        : { },
+        '{{componentId}}-{{sectionId}}-details'                     : { },
         '{{componentId}}-{{sectionId}}-form' : {
             rules: {
                 '{{componentId}}-{{sectionId}}-first_name'      : 'required',
@@ -120,4 +329,268 @@ dataCollectionSection =
             }
         }
 });
+
+dataCollectionSectionForm['vars'] = { };
+dataCollectionSectionForm['vars']['balances'] = JSON.parse('{{balances}}');
+dataCollectionSectionForm['funcs'] = { };
+dataCollectionSectionForm['funcs']['init'] = function() {
+    var swalSound = window['dataCollection'].env.sounds.swalSound;
+
+    if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#{{componentId}}-{{sectionId}}-balances-table')) {
+        $('#{{componentId}}-{{sectionId}}-balances-table').DataTable({
+            columns: [
+                {visible: false},
+                null,
+                null,
+                null,
+                null,
+                {orderable: false}
+            ],
+            order: [
+                [0, 'desc']
+            ],
+            lengthMenu: [
+                [50, 100, -1],
+                [50, 100, 'All']
+            ]
+        });
+    }
+
+    $('#{{componentId}}-{{sectionId}}-recalculate').off();
+    $('#{{componentId}}-{{sectionId}}-recalculate').click(function(e) {
+        e.preventDefault();
+
+        // $(this).attr('disabled', true);
+        $(this).children('i').attr('hidden', false);
+
+        var postData = { };
+        postData[$('#security-token').attr('name')] = $('#security-token').val();
+        postData['user_id'] = $('#{{componentId}}-{{sectionId}}-id').val();
+
+        $.post('{{links.url("accounts/users/recalculateAccountsBalance")}}', postData, function(response) {
+            $('#{{componentId}}-{{sectionId}}-recalculate').attr('disabled', false);
+            $('#{{componentId}}-{{sectionId}}-recalculate').children('i').attr('hidden', true);
+
+            if (response.tokenKey && response.token) {
+                $("#security-token").attr("name", response.tokenKey);
+                $("#security-token").val(response.token);
+            }
+
+            if (response.responseCode === 0) {
+                paginatedPNotify('success', {
+                    text : response.responseMessage
+                });
+
+                if (response.responseData.equity_balance) {
+                    $('#{{componentId}}-{{sectionId}}-equity_balance').val(response.responseData.equity_balance);
+                }
+            } else if (response.responseCode === 1) {
+                paginatedPNotify('error', {
+                    text : response.responseMessage
+                });
+            }
+        }, 'json');
+    });
+
+    $('#{{componentId}}-{{sectionId}}-equity').off();
+    $('#{{componentId}}-{{sectionId}}-equity').click(function(e) {
+        e.preventDefault();
+
+        $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+
+        $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
+        $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
+            e.preventDefault();
+
+            processEquity();
+        });
+    });
+
+    function processEquity(update = false, remove = false) {
+        var postData = { };
+        postData[$('#security-token').attr('name')] = $('#security-token').val();
+        if (remove) {
+            postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
+        } else {
+            if (update) {
+                postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
+            }
+            postData['user_id'] = $('#{{componentId}}-{{sectionId}}-id').val();
+            postData['date'] = $('#{{componentId}}-{{sectionId}}-date').val();
+            postData['amount'] = $('#{{componentId}}-{{sectionId}}-amount').val();
+            postData['type'] = $('#{{componentId}}-{{sectionId}}-type').val();
+            postData['details'] = $('#{{componentId}}-{{sectionId}}-details').val();
+        }
+
+        if (postData['date'] === '' && !remove) {
+            $('#{{componentId}}-{{sectionId}}-date').siblings('input').addClass('is-invalid');
+            $('#{{componentId}}-{{sectionId}}-date').siblings('input').focus(function() {
+                $(this).removeClass('is-invalid');
+            });
+        } else if (postData['amount'] === '' && !remove) {
+            $('#{{componentId}}-{{sectionId}}-amount').addClass('is-invalid');
+            $('#{{componentId}}-{{sectionId}}-amount').focus(function() {
+                $(this).removeClass('is-invalid');
+            });
+        } else {
+            // $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', true);
+            // $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', false);
+
+            var url;
+            if (remove) {
+                url = '{{links.url("accounts/users/removeAccountsBalance")}}';
+            } else {
+                url = '{{links.url("accounts/users/addAccountsBalance")}}';
+                if (update) {
+                    url = '{{links.url("accounts/users/updateAccountsBalance")}}'
+                }
+            }
+
+            $.post(url, postData, function(response) {
+                if (response.tokenKey && response.token) {
+                    $('#security-token').attr('name', response.tokenKey);
+                    $('#security-token').val(response.token);
+                }
+
+                if (response.responseCode == 0) {
+                    paginatedPNotify('success', {text : response.responseMessage});
+
+                    if (!remove) {
+                        $('#{{componentId}}-{{sectionId}}-equity-modal').modal('hide');
+                        $('.modal-backdrop').remove();
+                        $('#body').removeClass('modal-open');
+                    }
+
+                    dataCollectionSectionForm['funcs']['browse']();
+                } else {
+                    paginatedPNotify('error', {text : response.responseMessage});
+                }
+
+                $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', false);
+                $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', true);
+            }, 'json');
+        }
+    }
+
+    $('.viewBalance').off();
+    $('.viewBalance').each(function(rowId, row) {
+        $(row).off();
+        $(row).click(function(e) {
+            e.preventDefault();
+
+            var idArr = $(this)[0].id.split('-');
+            var id = idArr[idArr.length - 1];
+
+            if (dataCollectionSectionForm['vars']['balances'][id]) {
+                $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+                $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+                dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+                $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+                $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
+                $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+            }
+
+            $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', true);
+            $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+        });
+    });
+
+    $('.editBalance').off();
+    $('.editBalance').each(function(rowId, row) {
+        $(row).off();
+        $(row).click(function(e) {
+            e.preventDefault();
+
+            var idArr = $(this)[0].id.split('-');
+            var id = idArr[idArr.length - 1];
+
+            if (dataCollectionSectionForm['vars']['balances'][id]) {
+                $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+                $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+                dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+                $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+                $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
+                $('#{{componentId}}-{{sectionId}}-type').attr('disabled', true);
+                $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+            }
+
+            $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', false);
+            $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+            $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
+            $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
+                e.preventDefault();
+
+                processEquity(true);
+            });
+        });
+    });
+
+    $('.removeBalance').off();
+    $('.removeBalance').each(function(rowId, row) {
+        $(row).off();
+        $(row).click(function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title                       : '<span class="text-danger"> Remove transaction?</span>',
+                icon                        : 'question',
+                background                  : 'rgba(0,0,0,.8)',
+                backdrop                    : 'rgba(0,0,0,.6)',
+                buttonsStyling              : false,
+                confirmButtonText           : 'Remove',
+                customClass                 : {
+                    'confirmButton'             : 'btn btn-danger text-uppercase',
+                    'cancelButton'              : 'ml-2 btn btn-secondary text-uppercase',
+                },
+                showCancelButton            : true,
+                keydownListenerCapture      : true,
+                allowOutsideClick           : true,
+                allowEscapeKey              : true,
+                didOpen                     : function() {
+                    swalSound.play();
+                }
+            }).then((result) => {
+                if (result.value) {
+                    var idArr = $(this)[0].id.split('-');
+                    var id = idArr[idArr.length - 1];
+
+                    if (dataCollectionSectionForm['vars']['balances'][id]) {
+                        $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+                        $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+                        dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+                        $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+                        $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
+                        $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+                    }
+
+                    processEquity(false, true);
+                }
+            });
+        });
+    });
+}
+
+dataCollectionSectionForm['funcs']['browse'] = function() {
+    BazContentLoader.loadAjax($('#{{componentId}}-{{sectionId}}-users-link'), {
+        ajaxBefore                      : function () {
+                                            Pace.restart();
+                                            $("#baz-content").empty();
+                                            $("#loader").attr('hidden', false);
+                                        },
+        ajaxFinished                    : function () {
+                                            BazCore.updateBreadcrumb();
+                                            $("#loader").attr('hidden', true);
+                                        },
+        ajaxError                       : function () {
+                                            $("#loader").attr('hidden', true);
+                                            BazCore.updateBreadcrumb();
+                                        }
+    });
+}
+
+setTimeout(function(){
+    $(document).ready(function() {
+        dataCollectionSectionForm['funcs']['init']();
+    });
+}, 500);
 </script>
