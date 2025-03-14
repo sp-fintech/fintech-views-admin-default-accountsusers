@@ -80,6 +80,21 @@
             ]
         )}}
     </div>
+{% set equityButtons = [] %}
+{% if user['id'] is defined %}
+    {% set equityButtons =
+        [
+            'recalculate'   : [
+                'title'                   : 'Recalculate',
+                'icon'                    : 'cog fa-spin',
+                'iconHidden'              : true,
+                'noMargin'                : true,
+                'buttonAdditionalClass'   : 'rounded-0 text-white',
+                'position'                : 'right'
+            ]
+        ]
+    %}
+{% endif %}
     <div class="col">
         {{adminltetags.useTag('fields',
             [
@@ -93,17 +108,7 @@
                 'fieldHelp'                      : true,
                 'fieldHelpTooltipContent'        : 'Equity Balance',
                 'fieldGroupPreAddonText'         : currencySymbol,
-                'fieldGroupPostAddonButtons'     :
-                    [
-                        'recalculate'   : [
-                            'title'                   : 'Recalculate',
-                            'icon'                    : 'cog fa-spin',
-                            'iconHidden'              : true,
-                            'noMargin'                : true,
-                            'buttonAdditionalClass'   : 'rounded-0 text-white',
-                            'position'                : 'right'
-                        ]
-                    ],
+                'fieldGroupPostAddonButtons'     : equityButtons,
                 'fieldRequired'                  : false,
                 'fieldDisabled'                  : true,
                 'fieldBazScan'                   : true,
@@ -252,7 +257,7 @@
                 'modalFooter'               : true,
                 'modalHeaderCloseButton'    : true,
                 'modalEscClose'             : true,
-                'modalTitle'                : currencySymbol ~ ' ADD EQUITY',
+                'modalTitle'                : currencySymbol ~ ' EQUITY',
                 'modalFooterButtons'        :
                     [
                     'component'                     : component,
