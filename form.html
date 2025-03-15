@@ -122,7 +122,7 @@
         )}}
     </div>
 </div>
-{% set balances = [] %}
+{# {% set balances = [] %}
 {% if user['id'] is defined %}
     <div class="row">
         <div class="col">
@@ -173,16 +173,12 @@
     {% set balancesHtml = '' %}
     {% if user['balances'] is defined and user['balances']|length > 0 %}
         {% for balance in user['balances'] %}
-            {% set inUse = 'Yes' %}
-            {% if balance['in_use'] == false %}
-                {% set inUse = 'No' %}
-            {% endif %}
             {% set balancesHtml = balancesHtml ~ '<tr>' ~
             '           <td>' ~ balance['id'] ~ '</td>' ~
             '           <td>' ~ balance['date'] ~ '</td>' ~
             '           <td>' ~ strtoupper(balance['type']) ~ '</td>' ~
             '           <td>' ~ balance['amount'] ~ '</td>' ~
-            '           <td>' ~ inUse ~ '</td>' ~
+            '           <td>' ~ balance['used_by'] ~ '</td>' ~
             '           <td>' %}
                 {% set dropdowns = [] %}
                 {% set dropdowns['edit-' ~ balance['id']] = [
@@ -233,7 +229,7 @@
                         <th class="text-uppercase">DATE</th>
                         <th class="text-uppercase">TYPE</th>
                         <th class="text-uppercase">AMOUNT ({{ currencySymbol }})</th>
-                        <th class="text-uppercase">IN USE</th>
+                        <th class="text-uppercase">USED BY</th>
                         <th class="text-uppercase">ACTIONS</th>
                     </tr>
                 </thead>
@@ -281,7 +277,7 @@
         )}}
     </div>
 {% endif %}
-{% set balances = json_encode(balances, 16) %}
+{% set balances = json_encode(balances, 16) %} #}
 <script>
 /*global paginatedPNotify BazProgress BazContentFields BazHelpers BazContentLoader Pace BazCore dataCollection Swal */
 var dataCollectionComponent, dataCollectionSection, dataCollectionSectionForm;
@@ -313,16 +309,15 @@ dataCollectionSection =
         '{{componentId}}-{{sectionId}}-id'                          : { },
         '{{componentId}}-{{sectionId}}-first_name'                  : { },
         '{{componentId}}-{{sectionId}}-last_name'                   : { },
-        '{{componentId}}-{{sectionId}}-equity_balance'              : { },
-        '{{componentId}}-{{sectionId}}-balance_id'                  : { },
-        '{{componentId}}-{{sectionId}}-date'                        : {
-            dateFormat          : "Y-m-d",
-            altFormat           : "Y-m-d",
-            static              : true
-        },
-        '{{componentId}}-{{sectionId}}-amount'                      : { },
-        '{{componentId}}-{{sectionId}}-type'                        : { },
-        '{{componentId}}-{{sectionId}}-details'                     : { },
+        // '{{componentId}}-{{sectionId}}-equity_balance'              : { },
+        // '{{componentId}}-{{sectionId}}-balance_id'                  : { },
+        // '{{componentId}}-{{sectionId}}-date'                        : {
+        //     dateFormat          : "Y-m-d",
+        //     altFormat           : "Y-m-d",
+        //     static              : true
+        // },
+        // '{{componentId}}-{{sectionId}}-amount'                      : { },
+        // '{{componentId}}-{{sectionId}}-details'                     : { },
         '{{componentId}}-{{sectionId}}-form' : {
             rules: {
                 '{{componentId}}-{{sectionId}}-first_name'      : 'required',
@@ -336,30 +331,30 @@ dataCollectionSection =
 });
 
 dataCollectionSectionForm['vars'] = { };
-dataCollectionSectionForm['vars']['balances'] = JSON.parse('{{balances}}');
+// dataCollectionSectionForm['vars']['balances'] = JSON.parse('{{balances}}');
 dataCollectionSectionForm['funcs'] = { };
 dataCollectionSectionForm['funcs']['init'] = function() {
     var swalSound = window['dataCollection'].env.sounds.swalSound;
 
-    if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#{{componentId}}-{{sectionId}}-balances-table')) {
-        $('#{{componentId}}-{{sectionId}}-balances-table').DataTable({
-            columns: [
-                {visible: false},
-                null,
-                null,
-                null,
-                null,
-                {orderable: false}
-            ],
-            order: [
-                [0, 'desc']
-            ],
-            lengthMenu: [
-                [50, 100, -1],
-                [50, 100, 'All']
-            ]
-        });
-    }
+    // if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#{{componentId}}-{{sectionId}}-balances-table')) {
+    //     $('#{{componentId}}-{{sectionId}}-balances-table').DataTable({
+    //         columns: [
+    //             {visible: false},
+    //             null,
+    //             null,
+    //             null,
+    //             null,
+    //             {orderable: false}
+    //         ],
+    //         order: [
+    //             [0, 'desc']
+    //         ],
+    //         lengthMenu: [
+    //             [50, 100, -1],
+    //             [50, 100, 'All']
+    //         ]
+    //     });
+    // }
 
     $('#{{componentId}}-{{sectionId}}-recalculate').off();
     $('#{{componentId}}-{{sectionId}}-recalculate').click(function(e) {
@@ -397,205 +392,200 @@ dataCollectionSectionForm['funcs']['init'] = function() {
         }, 'json');
     });
 
-    $('#{{componentId}}-{{sectionId}}-equity').off();
-    $('#{{componentId}}-{{sectionId}}-equity').click(function(e) {
-        e.preventDefault();
+    // $('#{{componentId}}-{{sectionId}}-equity').off();
+    // $('#{{componentId}}-{{sectionId}}-equity').click(function(e) {
+    //     e.preventDefault();
 
-        $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+    //     $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
 
-        $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
-        $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
-            e.preventDefault();
+    //     $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
+    //     $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
+    //         e.preventDefault();
 
-            processEquity();
-        });
-    });
+    //         processEquity();
+    //     });
+    // });
 
-    function processEquity(update = false, remove = false) {
-        var postData = { };
-        postData[$('#security-token').attr('name')] = $('#security-token').val();
-        if (remove) {
-            postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
-        } else {
-            if (update) {
-                postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
-            }
-            postData['user_id'] = $('#{{componentId}}-{{sectionId}}-id').val();
-            postData['date'] = $('#{{componentId}}-{{sectionId}}-date').val();
-            postData['amount'] = $('#{{componentId}}-{{sectionId}}-amount').val();
-            postData['type'] = $('#{{componentId}}-{{sectionId}}-type').val();
-            postData['details'] = $('#{{componentId}}-{{sectionId}}-details').val();
-        }
+    // function processEquity(update = false, remove = false) {
+    //     var postData = { };
+    //     postData[$('#security-token').attr('name')] = $('#security-token').val();
+    //     if (remove) {
+    //         postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
+    //     } else {
+    //         if (update) {
+    //             postData['id'] = $('#{{componentId}}-{{sectionId}}-balance_id').val();
+    //         }
+    //         postData['user_id'] = $('#{{componentId}}-{{sectionId}}-id').val();
+    //         postData['date'] = $('#{{componentId}}-{{sectionId}}-date').val();
+    //         postData['amount'] = $('#{{componentId}}-{{sectionId}}-amount').val();
+    //         postData['details'] = $('#{{componentId}}-{{sectionId}}-details').val();
+    //     }
 
-        if (postData['date'] === '' && !remove) {
-            $('#{{componentId}}-{{sectionId}}-date').siblings('input').addClass('is-invalid');
-            $('#{{componentId}}-{{sectionId}}-date').siblings('input').focus(function() {
-                $(this).removeClass('is-invalid');
-            });
-        } else if (postData['amount'] === '' && !remove) {
-            $('#{{componentId}}-{{sectionId}}-amount').addClass('is-invalid');
-            $('#{{componentId}}-{{sectionId}}-amount').focus(function() {
-                $(this).removeClass('is-invalid');
-            });
-        } else {
-            // $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', true);
-            // $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', false);
+    //     if (postData['date'] === '' && !remove) {
+    //         $('#{{componentId}}-{{sectionId}}-date').siblings('input').addClass('is-invalid');
+    //         $('#{{componentId}}-{{sectionId}}-date').siblings('input').focus(function() {
+    //             $(this).removeClass('is-invalid');
+    //         });
+    //     } else if (postData['amount'] === '' && !remove) {
+    //         $('#{{componentId}}-{{sectionId}}-amount').addClass('is-invalid');
+    //         $('#{{componentId}}-{{sectionId}}-amount').focus(function() {
+    //             $(this).removeClass('is-invalid');
+    //         });
+    //     } else {
+    //         // $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', true);
+    //         // $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', false);
 
-            var url;
-            if (remove) {
-                url = '{{links.url("accounts/users/removeAccountsBalance")}}';
-            } else {
-                url = '{{links.url("accounts/users/addAccountsBalance")}}';
-                if (update) {
-                    url = '{{links.url("accounts/users/updateAccountsBalance")}}'
-                }
-            }
+    //         var url;
+    //         if (remove) {
+    //             url = '{{links.url("accounts/users/removeAccountsBalance")}}';
+    //         } else {
+    //             url = '{{links.url("accounts/users/addAccountsBalance")}}';
+    //             if (update) {
+    //                 url = '{{links.url("accounts/users/updateAccountsBalance")}}'
+    //             }
+    //         }
 
-            $.post(url, postData, function(response) {
-                if (response.tokenKey && response.token) {
-                    $('#security-token').attr('name', response.tokenKey);
-                    $('#security-token').val(response.token);
-                }
+    //         $.post(url, postData, function(response) {
+    //             if (response.tokenKey && response.token) {
+    //                 $('#security-token').attr('name', response.tokenKey);
+    //                 $('#security-token').val(response.token);
+    //             }
 
-                if (response.responseCode == 0) {
-                    paginatedPNotify('success', {text : response.responseMessage});
+    //             if (response.responseCode == 0) {
+    //                 paginatedPNotify('success', {text : response.responseMessage});
 
-                    if (!remove) {
-                        $('#{{componentId}}-{{sectionId}}-equity-modal').modal('hide');
-                        $('.modal-backdrop').remove();
-                        $('#body').removeClass('modal-open');
-                    }
+    //                 if (!remove) {
+    //                     $('#{{componentId}}-{{sectionId}}-equity-modal').modal('hide');
+    //                     $('.modal-backdrop').remove();
+    //                     $('#body').removeClass('modal-open');
+    //                 }
 
-                    dataCollectionSectionForm['funcs']['browse']();
-                } else {
-                    paginatedPNotify('error', {text : response.responseMessage});
-                }
+    //                 dataCollectionSectionForm['funcs']['browse']();
+    //             } else {
+    //                 paginatedPNotify('error', {text : response.responseMessage});
+    //             }
 
-                $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', false);
-                $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', true);
-            }, 'json');
-        }
-    }
+    //             $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('disabled', false);
+    //             $('#{{componentId}}-{{sectionId}}-modal-button-save').children('i').attr('hidden', true);
+    //         }, 'json');
+    //     }
+    // }
 
-    $('.viewBalance').off();
-    $('.viewBalance').each(function(rowId, row) {
-        $(row).off();
-        $(row).click(function(e) {
-            e.preventDefault();
+    // $('.viewBalance').off();
+    // $('.viewBalance').each(function(rowId, row) {
+    //     $(row).off();
+    //     $(row).click(function(e) {
+    //         e.preventDefault();
 
-            var idArr = $(this)[0].id.split('-');
-            var id = idArr[idArr.length - 1];
+    //         var idArr = $(this)[0].id.split('-');
+    //         var id = idArr[idArr.length - 1];
 
-            if (dataCollectionSectionForm['vars']['balances'][id]) {
-                $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
-                $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
-                dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
-                $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
-                $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
-                $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
-            }
+    //         if (dataCollectionSectionForm['vars']['balances'][id]) {
+    //             $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+    //             $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+    //             dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+    //             $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+    //             $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+    //         }
 
-            $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', true);
-            $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
-        });
-    });
+    //         $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', true);
+    //         $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+    //     });
+    // });
 
-    $('.editBalance').off();
-    $('.editBalance').each(function(rowId, row) {
-        $(row).off();
-        $(row).click(function(e) {
-            e.preventDefault();
+    // $('.editBalance').off();
+    // $('.editBalance').each(function(rowId, row) {
+    //     $(row).off();
+    //     $(row).click(function(e) {
+    //         e.preventDefault();
 
-            var idArr = $(this)[0].id.split('-');
-            var id = idArr[idArr.length - 1];
+    //         var idArr = $(this)[0].id.split('-');
+    //         var id = idArr[idArr.length - 1];
 
-            if (dataCollectionSectionForm['vars']['balances'][id]) {
-                $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
-                $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
-                dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
-                $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
-                $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
-                $('#{{componentId}}-{{sectionId}}-type').attr('disabled', true);
-                $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
-            }
+    //         if (dataCollectionSectionForm['vars']['balances'][id]) {
+    //             $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+    //             $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+    //             dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+    //             $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+    //             $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+    //         }
 
-            $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', false);
-            $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
-            $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
-            $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
-                e.preventDefault();
+    //         $('#{{componentId}}-{{sectionId}}-modal-button-save').attr('hidden', false);
+    //         $('#{{componentId}}-{{sectionId}}-equity-modal').modal('show');
+    //         $('#{{componentId}}-{{sectionId}}-modal-button-save').off();
+    //         $('#{{componentId}}-{{sectionId}}-modal-button-save').click(function(e) {
+    //             e.preventDefault();
 
-                processEquity(true);
-            });
-        });
-    });
+    //             processEquity(true);
+    //         });
+    //     });
+    // });
 
-    $('.removeBalance').off();
-    $('.removeBalance').each(function(rowId, row) {
-        $(row).off();
-        $(row).click(function(e) {
-            e.preventDefault();
+    // $('.removeBalance').off();
+    // $('.removeBalance').each(function(rowId, row) {
+    //     $(row).off();
+    //     $(row).click(function(e) {
+    //         e.preventDefault();
 
-            Swal.fire({
-                title                       : '<span class="text-danger"> Remove transaction?</span>',
-                icon                        : 'question',
-                background                  : 'rgba(0,0,0,.8)',
-                backdrop                    : 'rgba(0,0,0,.6)',
-                buttonsStyling              : false,
-                confirmButtonText           : 'Remove',
-                customClass                 : {
-                    'confirmButton'             : 'btn btn-danger text-uppercase',
-                    'cancelButton'              : 'ml-2 btn btn-secondary text-uppercase',
-                },
-                showCancelButton            : true,
-                keydownListenerCapture      : true,
-                allowOutsideClick           : true,
-                allowEscapeKey              : true,
-                didOpen                     : function() {
-                    swalSound.play();
-                }
-            }).then((result) => {
-                if (result.value) {
-                    var idArr = $(this)[0].id.split('-');
-                    var id = idArr[idArr.length - 1];
+    //         Swal.fire({
+    //             title                       : '<span class="text-danger"> Remove transaction?</span>',
+    //             icon                        : 'question',
+    //             background                  : 'rgba(0,0,0,.8)',
+    //             backdrop                    : 'rgba(0,0,0,.6)',
+    //             buttonsStyling              : false,
+    //             confirmButtonText           : 'Remove',
+    //             customClass                 : {
+    //                 'confirmButton'             : 'btn btn-danger text-uppercase',
+    //                 'cancelButton'              : 'ml-2 btn btn-secondary text-uppercase',
+    //             },
+    //             showCancelButton            : true,
+    //             keydownListenerCapture      : true,
+    //             allowOutsideClick           : true,
+    //             allowEscapeKey              : true,
+    //             didOpen                     : function() {
+    //                 swalSound.play();
+    //             }
+    //         }).then((result) => {
+    //             if (result.value) {
+    //                 var idArr = $(this)[0].id.split('-');
+    //                 var id = idArr[idArr.length - 1];
 
-                    if (dataCollectionSectionForm['vars']['balances'][id]) {
-                        $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
-                        $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
-                        dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
-                        $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
-                        $('#{{componentId}}-{{sectionId}}-type').val(dataCollectionSectionForm['vars']['balances'][id]['type']).trigger('change');
-                        $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
-                    }
+    //                 if (dataCollectionSectionForm['vars']['balances'][id]) {
+    //                     $('#{{componentId}}-{{sectionId}}-balance_id').val(dataCollectionSectionForm['vars']['balances'][id]['id']);
+    //                     $('#{{componentId}}-{{sectionId}}-date').val(dataCollectionSectionForm['vars']['balances'][id]['date']);
+    //                     dataCollectionSection["{{componentId}}-{{sectionId}}-date"]['flatpickr'].setDate(dataCollectionSectionForm['vars']['balances'][id]['date'])
+    //                     $('#{{componentId}}-{{sectionId}}-amount').val(dataCollectionSectionForm['vars']['balances'][id]['amount']);
+    //                     $('#{{componentId}}-{{sectionId}}-details').val(dataCollectionSectionForm['vars']['balances'][id]['details']);
+    //                 }
 
-                    processEquity(false, true);
-                }
-            });
-        });
-    });
+    //                 processEquity(false, true);
+    //             }
+    //         });
+    //     });
+    // });
 }
 
-dataCollectionSectionForm['funcs']['browse'] = function() {
-    BazContentLoader.loadAjax($('#{{componentId}}-{{sectionId}}-users-link'), {
-        ajaxBefore                      : function () {
-                                            Pace.restart();
-                                            $("#baz-content").empty();
-                                            $("#loader").attr('hidden', false);
-                                        },
-        ajaxFinished                    : function () {
-                                            BazCore.updateBreadcrumb();
-                                            $("#loader").attr('hidden', true);
-                                        },
-        ajaxError                       : function () {
-                                            $("#loader").attr('hidden', true);
-                                            BazCore.updateBreadcrumb();
-                                        }
-    });
-}
+// dataCollectionSectionForm['funcs']['browse'] = function() {
+//     BazContentLoader.loadAjax($('#{{componentId}}-{{sectionId}}-users-link'), {
+//         ajaxBefore                      : function () {
+//                                             Pace.restart();
+//                                             $("#baz-content").empty();
+//                                             $("#loader").attr('hidden', false);
+//                                         },
+//         ajaxFinished                    : function () {
+//                                             BazCore.updateBreadcrumb();
+//                                             $("#loader").attr('hidden', true);
+//                                         },
+//         ajaxError                       : function () {
+//                                             $("#loader").attr('hidden', true);
+//                                             BazCore.updateBreadcrumb();
+//                                         }
+//     });
+// }
 
-setTimeout(function(){
-    $(document).ready(function() {
-        dataCollectionSectionForm['funcs']['init']();
-    });
-}, 500);
+// setTimeout(function(){
+$(document).ready(function() {
+    dataCollectionSectionForm['funcs']['init']();
+});
+// }, 500);
 </script>
