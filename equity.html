@@ -64,12 +64,50 @@
                 'fieldGroupPreAddonText'         : currencySymbol,
                 'fieldInputTypeTextFilter'       : 'positiveCurrency',
                 'fieldHelp'                      : true,
-                'fieldHelpTooltipContent'        : 'Equity Amount',
+                'fieldHelpTooltipContent'        : 'Transaction Amount',
                 'fieldRequired'                  : true,
                 'fieldBazScan'                   : true,
                 'fieldBazPostOnCreate'           : false,
                 'fieldBazPostOnUpdate'           : false,
                 'fieldValue'                     : ''
+            ]
+        )}}
+    </div>
+    {% set types =
+        [
+            'debit' :
+                [
+                    'id'    : 'debit',
+                    'name'  : 'DEBIT'
+                ],
+            'credit' :
+                [
+                    'id'    : 'credit',
+                    'name'  : 'CREDIT'
+                ]
+        ]
+    %}
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                      : component,
+                'componentName'                  : componentName,
+                'componentId'                    : componentId,
+                'sectionId'                      : sectionId,
+                'fieldId'                        : 'type',
+                'fieldLabel'                     : 'Type',
+                'fieldType'                      : 'select2',
+                'fieldHelp'                      : true,
+                'fieldHelpTooltipContent'        : 'Type',
+                'fieldRequired'                  : true,
+                'fieldBazScan'                   : true,
+                'fieldBazPostOnCreate'           : false,
+                'fieldBazPostOnUpdate'           : false,
+                'fieldDataSelect2Options'        : types,
+                'fieldDataSelect2OptionsKey'     : 'id',
+                'fieldDataSelect2OptionsValue'   : 'name',
+                'fieldDataSelect2OptionsArray'   : true,
+                'fieldDataSelect2OptionsSelected': 'debit'
             ]
         )}}
     </div>
