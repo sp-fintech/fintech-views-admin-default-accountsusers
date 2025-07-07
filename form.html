@@ -2,11 +2,13 @@
     {% set userId = user['id'] %}
     {% set userFirstName = user['first_name'] %}
     {% set userLastName = user['last_name'] %}
+    {% set userState = user['state_id'] %}
     {% set userEquityBalance = user['equity_balance'] %}
 {% else %}
     {% set userId = '' %}
     {% set userFirstName = '' %}
     {% set userLastName = '' %}
+    {% set userState = '' %}
     {% set userEquityBalance = '0.00' %}
 {% endif %}
 <div class="row">
@@ -80,6 +82,30 @@
             ]
         )}}
     </div>
+    <div class="col">
+        {{adminltetags.useTag('fields',
+            [
+                'component'                            : component,
+                'componentName'                        : componentName,
+                'componentId'                          : componentId,
+                'sectionId'                            : sectionId,
+                'fieldId'                              : 'state_id',
+                'fieldLabel'                           : 'State',
+                'fieldType'                            : 'select2',
+                'fieldHelp'                            : true,
+                'fieldHelpTooltipContent'              : 'Select State.',
+                'fieldRequired'                        : true,
+                'fieldBazScan'                         : true,
+                'fieldBazPostOnCreate'                 : true,
+                'fieldBazPostOnUpdate'                 : true,
+                'fieldDataSelect2Options'              : states,
+                'fieldDataSelect2OptionsKey'           : 'id',
+                'fieldDataSelect2OptionsValue'         : 'name',
+                'fieldDataSelect2OptionsArray'         : true,
+                'fieldDataSelect2OptionsSelected'      : userState
+            ]
+        )}}
+    </div>
 {% set equityButtons = [] %}
 {% if user['id'] is defined %}
     {% set equityButtons =
@@ -94,7 +120,6 @@
             ]
         ]
     %}
-{% endif %}
     <div class="col">
         {{adminltetags.useTag('fields',
             [
@@ -121,6 +146,7 @@
             ]
         )}}
     </div>
+{% endif %}
 </div>
 {% set balances = [] %}
 {% if user['id'] is defined %}
@@ -178,6 +204,7 @@
             '           <td>' ~ balance['date'] ~ '</td>' ~
             '           <td>' ~ strtoupper(balance['type']) ~ '</td>' ~
             '           <td>' ~ balance['amount'] ~ '</td>' ~
+            '           <td>' ~ balance['balance'] ~ '</td>' ~
             '           <td>' %}
                 {% set dropdowns = [] %}
                 {% if balance['type'] == 'credit' or balance['type'] == 'debit' %}
@@ -230,6 +257,7 @@
                         <th class="text-uppercase">DATE</th>
                         <th class="text-uppercase">TYPE</th>
                         <th class="text-uppercase">AMOUNT ({{ currencySymbol }})</th>
+                        <th class="text-uppercase">Balance</th>
                         <th class="text-uppercase">ACTIONS</th>
                     </tr>
                 </thead>
@@ -309,6 +337,9 @@ dataCollectionSection =
         '{{componentId}}-{{sectionId}}-id'                          : { },
         '{{componentId}}-{{sectionId}}-first_name'                  : { },
         '{{componentId}}-{{sectionId}}-last_name'                   : { },
+        '{{componentId}}-{{sectionId}}-state_id'                    : {
+            placeholder: 'SELECT STATE'
+        },
         '{{componentId}}-{{sectionId}}-equity_balance'              : { },
         '{{componentId}}-{{sectionId}}-balance_id'                  : { },
         '{{componentId}}-{{sectionId}}-date'                        : {
@@ -324,33 +355,38 @@ dataCollectionSection =
         '{{componentId}}-{{sectionId}}-form' : {
             rules: {
                 '{{componentId}}-{{sectionId}}-first_name'      : 'required',
-                '{{componentId}}-{{sectionId}}-last_name'       : 'required'
+                '{{componentId}}-{{sectionId}}-last_name'       : 'required',
+                '{{componentId}}-{{sectionId}}-state_id'        : 'required',
             },
             messages: {
                 '{{componentId}}-{{sectionId}}-first_name'      : 'Please enter first name',
-                '{{componentId}}-{{sectionId}}-last_name'       : 'Please enter last name'
+                '{{componentId}}-{{sectionId}}-last_name'       : 'Please enter last name',
+                '{{componentId}}-{{sectionId}}-state_id'        : 'Please select state'
             }
         }
 });
 
-dataCollectionSectionForm['vars'] = { };
+if (!dataCollectionSectionForm['vars']) {
+    dataCollectionSectionForm['vars'] = { };
+}
+if (!dataCollectionSectionForm['funcs']) {
+    dataCollectionSectionForm['funcs'] = { };
+}
 dataCollectionSectionForm['vars']['balances'] = JSON.parse('{{balances}}');
-dataCollectionSectionForm['funcs'] = { };
 dataCollectionSectionForm['funcs']['init'] = function() {
     var swalSound = window['dataCollection'].env.sounds.swalSound;
 
     if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#{{componentId}}-{{sectionId}}-balances-table')) {
         $('#{{componentId}}-{{sectionId}}-balances-table').DataTable({
             columns: [
-                {visible: false},
-                null,
-                null,
-                null,
+                {orderable: false, visible: false},
+                {orderable: false},
+                {orderable: false},
+                {orderable: false},
+                {orderable: false},
                 {orderable: false}
             ],
-            order: [
-                [0, 'desc']
-            ],
+            order: false,
             lengthMenu: [
                 [50, 100, -1],
                 [50, 100, 'All']
